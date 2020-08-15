@@ -1,0 +1,75 @@
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+from jupyterthemes import jtplot
+jtplot.style(theme='monokai', context='notebook', ticks=True, grid=False) 
+
+tweets_df=pd.read_csv('twitter.csv')
+tweets_df.describe()
+tweets_df.info()
+
+tweets_df=tweets_df.drop(['id'],axis=1)
+ sns.heatmap(tweets_df.isnull(), yticklabels = False, cbar = False, cmap="Blues")
+
+tweets_df.hist(bins = 30, figsize = (13,5), color = 'r')
+sns.countplot(x=tweets_df['label'],data=tweets_df)
+
+tweets_df['length']= tweets_df['tweet'].apply(len)
+tweets_df['length'].plot(bins=100, kind='hist') 
+
+# Let's see the shortest message 
+tweets_df[tweets_df['length'] == 11]['tweet'].iloc[0]
+tweets_df[tweets_df['length'] == 84]['tweet'].iloc[0]
+positive = tweets_df[tweets_df['label']==0]
+
+negative = tweets_df[tweets_df['label']==1]
+
+
+sentences= tweets_df['tweet'].tolist()
+sentences_as_one_string= " ".join(sentences)
+!pip install WordCloud
+from wordcloud import WordCloud
+
+plt.figure(figsize=(20,20))
+plt.imshow(WordCloud().generate(sentences_as_one_string))
+
+import string
+string.punctuation
+Test = 'Good morning beautiful people :)... I am having fun learning Machine learning and AI!!'
+Test_punc_removed = [ char for char in Test if char not in string.punctuation ]
+Test_punc_removed_join = ''.join(Test_punc_removed)
+Test_punc_removed_join
+
+import nltk # Natural Language tool kit 
+
+nltk.download('stopwords')
+from nltk.corpus import stopwords
+stopwords.words('english')
+Test_punc_removed_join_clean=[]
+for word in Test_punc_removed_join.split():
+    if word.lower() not in stopwords.words('english'):
+        Test_punc_removed_join_clean.append(word)
+
+#Tokenization - count vectorizer/ convert words into numbers
+from sklearn.feature_extraction.text import CountVectorizer
+sample_data = ['This is the first paper.','This document is the second paper.','And this is the third one.','Is this the first paper?']
+
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(sample_data)
+print(vectorizer.get_feature_names())
+print(X.toarray())
+
+
+# Let's define a pipeline to clean up all the messages 
+# The pipeline performs the following: (1) remove punctuation, (2) remove stopwords
+
+def message_cleaning(message):
+    Test_punc_removed = [char for char in message if char not in string.punctuation]
+    Test_punc_removed_join = ''.join(Test_punc_removed)
+    Test_punc_removed_join_clean = [word for word in Test_punc_removed_join.split() if word.lower() not in stopwords.words('english')]
+    return Test_punc_removed_join_clean
+
+tweets_df_clean = tweets_df['tweet'].apply(message_cleaning)
+print(tweets_df_clean[5]) 
+print(tweets_df['tweet'][5]) 
